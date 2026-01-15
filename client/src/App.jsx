@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Link as ScrollLink } from 'react-scroll';
 import { FaGithub, FaLinkedin, FaInstagram, FaDiscord, FaTwitter, FaFileAlt } from 'react-icons/fa';
 import ParticlesBackground from './components/ParticlesBackground';
 import ResumeModal from './components/ResumeModal';
-import AdminPanel from './components/AdminPanel';
 import ExtensionWarning from './components/ExtensionWarning';
 import Navbar from './components/Navbar';
 import Blog from './components/Blog';
 import Contact from './components/Contact';
 import axios from 'axios';
 
-// Import fixed UI pages (These contain your Timeline and Gradient Skills)
+// Import Pages
 import About from './pages/About';
 import Skills from './pages/Skills';
+import AdminDashboard from './pages/AdminDashboard'; 
 
-// Configuration for API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const socialLinks = [
@@ -25,34 +26,21 @@ const socialLinks = [
   { icon: <FaDiscord />, url: "https://discord.com" },
 ];
 
-function App() {
+const MainPortfolio = () => {
   const [projects, setProjects] = useState([]);
   const [isResumeOpen, setIsResumeOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
 
-  // 1. Fetch Projects from MERN Backend (Keeps Admin Panel valid)
   const fetchProjects = () => {
     axios.get(`${API_URL}/projects`)
       .then(res => setProjects(res.data))
-      .catch(err => console.error("Backend not connected yet. Ensure server is running.", err));
+      .catch(err => console.error("Backend offline", err));
   };
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Delete this project?")) {
-      try {
-        await axios.delete(`${API_URL}/projects/${id}`);
-        setProjects(projects.filter(p => p._id !== id));
-      } catch (error) {
-        alert("Failed to delete project");
-      }
-    }
-  };
-
-  // Reusable Section Component
   const Section = ({ id, title, children, className = "" }) => (
     <section id={id} className={`py-20 px-4 md:px-8 relative z-10 ${className}`}>
       <div className="max-w-7xl mx-auto">
@@ -76,15 +64,14 @@ function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans transition-colors duration-300 overflow-x-hidden">
       <ParticlesBackground />
       <ExtensionWarning />
+      
+      {/* Resume Modal with internal animations is called here */}
       <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />
       
-      {/* Navbar (Handles Navigation and Theme Toggle) */}
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
       <Section id="home" className="min-h-screen flex items-center justify-center pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
-          
           <motion.div 
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -113,19 +100,46 @@ function App() {
             </div>
 
             <div className="flex gap-4 justify-center lg:justify-start mt-8">
-              <button 
+              
+              {/* --- 1. ANIMATED RESUME BUTTON --- */}
+              <motion.button 
+                whileHover="hover"
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsResumeOpen(true)}
-                className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-bold shadow-lg hover:shadow-2xl transition-all flex items-center gap-2"
+                className="group relative px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-bold shadow-lg flex items-center gap-3 overflow-hidden"
               >
-                <FaFileAlt /> View Resume
-              </button>
-              <a href="#contact" className="px-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                Contact Me
-              </a>
+                {/* Icon Animation: Wiggle/Rotate on Hover */}
+                <motion.span 
+                  variants={{ hover: { rotate: [0, -15, 15, -15, 0], transition: { duration: 0.5 } } }}
+                >
+                  <FaFileAlt />
+                </motion.span>
+                <span className="relative z-10">View Resume</span>
+                
+                {/* Background Sweep Animation */}
+                <div className="absolute inset-0 bg-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 -z-0"></div>
+              </motion.button>
+              
+              {/* --- 2. SMOOTH CONTACT BUTTON --- */}
+              <ScrollLink 
+                to="contact" 
+                smooth={true} 
+                duration={500} 
+                offset={-80}
+              >
+                <motion.button 
+                  whileHover={{ scale: 1.05, backgroundColor: "rgba(59, 130, 246, 0.1)" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-bold transition-all cursor-pointer text-gray-700 dark:text-white"
+                >
+                  Contact Me
+                </motion.button>
+              </ScrollLink>
+
             </div>
           </motion.div>
 
-          {/* Interactive Profile Card */}
+          {/* Profile Card */}
           <motion.div 
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -136,15 +150,12 @@ function App() {
               className={`relative w-80 h-[28rem] cursor-pointer transform-style-3d transition-transform duration-700 ${flipped ? 'rotate-y-180' : ''}`}
               onClick={() => setFlipped(!flipped)}
             >
-               {/* Front Side */}
                <div className="absolute inset-0 backface-hidden rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-gray-200">
                   <img src="https://via.placeholder.com/400x600" alt="Amal Madhu" className="w-full h-full object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                     <p className="text-white text-center text-sm font-medium animate-pulse">Tap photo to see stats</p>
                   </div>
                </div>
-
-               {/* Back Side */}
                <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gray-900/95 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-700 flex flex-col justify-center text-center">
                   <h3 className="text-2xl font-bold text-white mb-6">Quick Stats</h3>
                   <div className="space-y-4 text-left">
@@ -159,25 +170,12 @@ function App() {
         </div>
       </Section>
 
-      {/* --- ABOUT (TIMELINE) SECTION --- */}
-      <Section id="about" className="bg-gray-50 dark:bg-gray-900">
-        <About />
-      </Section>
-
-      {/* --- SKILLS SECTION --- */}
-      <Section id="skills" title="Technical Arsenal">
-        <Skills />
-      </Section>
-
-      {/* --- PROJECTS SECTION (Dynamic MERN) --- */}
+      <Section id="about" className="bg-gray-50 dark:bg-gray-900"><About /></Section>
+      <Section id="skills" title="Technical Arsenal"><Skills /></Section>
+      
       <Section id="projects" title="Projects & Innovations">
-        <div className="mb-10">
-           {/* Admin Panel Component - Only visible if logged in logic is handled inside */}
-           <AdminPanel onProjectAdded={fetchProjects} />
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {projects.length > 0 ? projects.map((project, index) => (
+          {projects.map((project, index) => (
             <motion.div
               key={project._id}
               initial={{ opacity: 0, y: 20 }}
@@ -188,46 +186,38 @@ function App() {
             >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">{project.title}</h3>
-                <div className="flex gap-3">
-                   <a href={project.githubLink} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white text-xl"><FaGithub /></a>
-                   <button onClick={() => handleDelete(project._id)} className="text-red-400 hover:text-red-600 text-sm">Delete</button>
-                </div>
+                <a href={project.githubLink} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white text-xl"><FaGithub /></a>
               </div>
-              
               <p className="text-gray-600 dark:text-gray-300 mb-6 flex-grow">{project.description}</p>
-              
               <div className="flex flex-wrap gap-2 mt-auto">
                 {project.technologies.map(tech => (
-                  <span key={tech} className="px-3 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 rounded-lg">
-                    {tech}
-                  </span>
+                  <span key={tech} className="px-3 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 rounded-lg">{tech}</span>
                 ))}
               </div>
             </motion.div>
-          )) : (
-            <div className="col-span-2 text-center text-gray-500 py-10">
-                <p>No projects loaded from database yet. Use the Admin Panel to add them.</p>
-                <p className="text-xs mt-2">Make sure your backend server is running at {API_URL}</p>
-            </div>
-          )}
+          ))}
+          {projects.length === 0 && <p className="text-center w-full text-gray-500">Loading projects...</p>}
         </div>
       </Section>
 
-      {/* --- BLOG SECTION --- */}
-      <Section id="blog" title="Latest Articles">
-        <Blog />
-      </Section>
+      <Section id="blog" title="Latest Articles"><Blog /></Section>
+      <Section id="contact" title="Get In Touch"><Contact /></Section>
 
-      {/* --- CONTACT SECTION --- */}
-      <Section id="contact" title="Get In Touch">
-        <Contact />
-      </Section>
-
-      {/* --- FOOTER --- */}
       <footer className="py-8 text-center border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <p className="text-gray-500 text-sm">© {new Date().getFullYear()} Amal Madhu. Engineered with MERN Stack.</p>
       </footer>
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainPortfolio />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </Router>
   );
 }
 
