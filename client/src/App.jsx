@@ -10,7 +10,13 @@ import Blog from './components/Blog';
 import Contact from './components/Contact';
 import axios from 'axios';
 
-// --- DATA ---
+// Import fixed UI pages (These contain your Timeline and Gradient Skills)
+import About from './pages/About';
+import Skills from './pages/Skills';
+
+// Configuration for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const socialLinks = [
   { icon: <FaGithub />, url: "https://github.com/AbyssDrn" },
   { icon: <FaLinkedin />, url: "https://linkedin.com" },
@@ -19,26 +25,16 @@ const socialLinks = [
   { icon: <FaDiscord />, url: "https://discord.com" },
 ];
 
-const skills = [
-  { category: "Programming", items: ["Python", "JavaScript", "C++", "Verilog", "MATLAB"] },
-  { category: "AI/ML", items: ["PyTorch", "TensorFlow", "Computer Vision", "CUDA", "UNet"] },
-  { category: "Full Stack", items: ["React", "Node.js", "MongoDB", "Tailwind", "FastAPI"] },
-  { category: "Hardware", items: ["VLSI Design", "FPGA", "Embedded Systems", "IoT"] },
-  { category: "Creative", items: ["Blender", "Godot", "Figma", "Video Editing"] },
-];
-
-// Configuration for API URL (Scalable for deployment)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
 function App() {
   const [projects, setProjects] = useState([]);
   const [isResumeOpen, setIsResumeOpen] = useState(false);
   const [flipped, setFlipped] = useState(false);
 
+  // 1. Fetch Projects from MERN Backend (Keeps Admin Panel valid)
   const fetchProjects = () => {
     axios.get(`${API_URL}/projects`)
       .then(res => setProjects(res.data))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Backend not connected yet. Ensure server is running.", err));
   };
 
   useEffect(() => {
@@ -51,14 +47,14 @@ function App() {
         await axios.delete(`${API_URL}/projects/${id}`);
         setProjects(projects.filter(p => p._id !== id));
       } catch (error) {
-        alert("Failed to delete");
+        alert("Failed to delete project");
       }
     }
   };
 
-  // Reusable Section Component for smooth animations
+  // Reusable Section Component
   const Section = ({ id, title, children, className = "" }) => (
-    <section id={id} className={`min-h-screen py-24 px-6 relative ${className}`}>
+    <section id={id} className={`py-20 px-4 md:px-8 relative z-10 ${className}`}>
       <div className="max-w-7xl mx-auto">
         {title && (
           <motion.h2 
@@ -66,7 +62,7 @@ function App() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-extrabold mb-16 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400"
+            className="text-3xl md:text-5xl font-extrabold mb-16 text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400"
           >
             {title}
           </motion.h2>
@@ -77,31 +73,31 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans transition-colors duration-500 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans transition-colors duration-300 overflow-x-hidden">
       <ParticlesBackground />
       <ExtensionWarning />
       <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />
       
-      {/* Navbar now handles the Theme Toggle and Navigation */}
+      {/* Navbar (Handles Navigation and Theme Toggle) */}
       <Navbar />
 
       {/* --- HERO SECTION --- */}
-      <section id="home" className="min-h-screen flex items-center justify-center pt-20 px-6 relative">
-        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <Section id="home" className="min-h-screen flex items-center justify-center pt-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
           
           <motion.div 
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-6 z-10 text-center lg:text-left"
+            transition={{ duration: 0.8 }}
+            className="space-y-6 text-center lg:text-left"
           >
-            <h2 className="text-lg text-blue-600 dark:text-blue-400 font-semibold tracking-wide uppercase">
-              AI/ML Engineer & VLSI Student
+            <h2 className="text-lg text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest">
+              M.Tech VLSI & AI Engineer
             </h2>
             <h1 className="text-5xl md:text-7xl font-extrabold leading-tight">
-              Building the <br />
+              Amal <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-                Intelligent Future
+                Madhu
               </span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg mx-auto lg:mx-0">
@@ -116,139 +112,104 @@ function App() {
               ))}
             </div>
 
-            <div 
-              onClick={() => setIsResumeOpen(true)}
-              className="mt-8 inline-flex items-center gap-3 px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-bold shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group"
-            >
-              <FaFileAlt className="group-hover:rotate-12 transition-transform" />
-              <span>View Resume / CV</span>
+            <div className="flex gap-4 justify-center lg:justify-start mt-8">
+              <button 
+                onClick={() => setIsResumeOpen(true)}
+                className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-bold shadow-lg hover:shadow-2xl transition-all flex items-center gap-2"
+              >
+                <FaFileAlt /> View Resume
+              </button>
+              <a href="#contact" className="px-8 py-3 border border-gray-300 dark:border-gray-600 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+                Contact Me
+              </a>
             </div>
           </motion.div>
 
-          {/* Interactive Photo */}
+          {/* Interactive Profile Card */}
           <motion.div 
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative flex justify-center perspective-1000 z-10"
+            transition={{ duration: 0.8 }}
+            className="relative flex justify-center perspective-1000"
           >
             <div 
-              className={`relative w-80 h-[28rem] md:w-96 md:h-[32rem] transition-transform duration-700 transform-style-3d cursor-pointer ${flipped ? 'rotate-y-180' : ''}`}
+              className={`relative w-80 h-[28rem] cursor-pointer transform-style-3d transition-transform duration-700 ${flipped ? 'rotate-y-180' : ''}`}
               onClick={() => setFlipped(!flipped)}
             >
-              <div className="absolute inset-0 backface-hidden rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800">
-                <img src="https://via.placeholder.com/400x600" alt="Amal Madhu" className="w-full h-full object-cover" />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                  <p className="text-white text-center text-sm font-medium animate-pulse">Tap photo to see my traits</p>
-                </div>
-              </div>
+               {/* Front Side */}
+               <div className="absolute inset-0 backface-hidden rounded-2xl overflow-hidden shadow-2xl border-4 border-white dark:border-gray-800 bg-gray-200">
+                  <img src="https://via.placeholder.com/400x600" alt="Amal Madhu" className="w-full h-full object-cover" />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                    <p className="text-white text-center text-sm font-medium animate-pulse">Tap photo to see stats</p>
+                  </div>
+               </div>
 
-              <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gray-900/95 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-700 flex flex-col justify-center text-center">
-                <h3 className="text-2xl font-bold text-white mb-6">Behind the Code</h3>
-                <div className="space-y-4 text-left">
-                  <div>
-                    <h4 className="text-blue-400 font-bold uppercase text-xs">Strengths</h4>
-                    <p className="text-gray-300 text-sm">Rapid learner, Hardware-Software integration, Problem-solving.</p>
+               {/* Back Side */}
+               <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gray-900/95 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-gray-700 flex flex-col justify-center text-center">
+                  <h3 className="text-2xl font-bold text-white mb-6">Quick Stats</h3>
+                  <div className="space-y-4 text-left">
+                     <p className="text-gray-300"><strong className="text-blue-400">Typing:</strong> 70+ WPM</p>
+                     <p className="text-gray-300"><strong className="text-purple-400">Age:</strong> 25</p>
+                     <p className="text-gray-300"><strong className="text-pink-400">Location:</strong> Kerala, India</p>
+                     <p className="text-gray-300"><strong className="text-green-400">Focus:</strong> VLSI & Full Stack</p>
                   </div>
-                  <div>
-                    <h4 className="text-purple-400 font-bold uppercase text-xs">Focus</h4>
-                    <p className="text-gray-300 text-sm">Computer Vision, VLSI, MERN Stack.</p>
-                  </div>
-                  <div>
-                    <h4 className="text-pink-400 font-bold uppercase text-xs">Hobbies</h4>
-                    <p className="text-gray-300 text-sm">Cycling, Anime, Game Dev, Research.</p>
-                  </div>
-                </div>
-              </div>
+               </div>
             </div>
           </motion.div>
         </div>
-      </section>
+      </Section>
 
-      {/* --- ABOUT SECTION --- */}
-      <Section id="about" className="bg-gray-100/50 dark:bg-gray-800/50">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-             initial={{ opacity: 0, y: 50 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.6 }}
-             viewport={{ once: true }}
-           >
-             <h2 className="text-4xl font-bold mb-8 text-center">My Journey</h2>
-             <div className="bg-white dark:bg-gray-800 p-8 md:p-12 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 leading-relaxed text-lg text-gray-700 dark:text-gray-300 space-y-6">
-               <p>
-                 I am currently an <strong>M.Tech student in VLSI</strong> at Digital University Kerala, passionate about bridging the gap between hardware and software. My journey started with a B.Tech in ECE, where I discovered my love for building things from scratch.
-               </p>
-               <p>
-                 My goal is to become a versatile developer capable of building the entire stack: from the silicon chip (VLSI) to the backend API and the frontend user experience. 
-               </p>
-             </div>
-           </motion.div>
-        </div>
+      {/* --- ABOUT (TIMELINE) SECTION --- */}
+      <Section id="about" className="bg-gray-50 dark:bg-gray-900">
+        <About />
       </Section>
 
       {/* --- SKILLS SECTION --- */}
       <Section id="skills" title="Technical Arsenal">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {skills.map((skillGroup, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
-            >
-              <h3 className="text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">{skillGroup.category}</h3>
-              <div className="flex flex-wrap gap-2">
-                {skillGroup.items.map(item => (
-                  <span key={item} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <Skills />
       </Section>
 
-      {/* --- PROJECTS SECTION --- */}
-      <Section id="projects" title="Projects & Innovations" className="bg-gray-100/50 dark:bg-gray-800/50">
-        <AdminPanel onProjectAdded={fetchProjects} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
-          {projects.map((project, index) => (
+      {/* --- PROJECTS SECTION (Dynamic MERN) --- */}
+      <Section id="projects" title="Projects & Innovations">
+        <div className="mb-10">
+           {/* Admin Panel Component - Only visible if logged in logic is handled inside */}
+           <AdminPanel onProjectAdded={fetchProjects} />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {projects.length > 0 ? projects.map((project, index) => (
             <motion.div
               key={project._id}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="relative bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col h-full group"
+              className="relative bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 group hover:-translate-y-2 transition-transform duration-300 flex flex-col h-full"
             >
-              {/* Delete Button */}
-              <button 
-                onClick={() => handleDelete(project._id)}
-                className="absolute top-6 right-6 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                ✕
-              </button>
-              
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-blue-500 transition-colors">{project.title}</h3>
-                <a href={project.githubLink} className="text-gray-400 hover:text-white text-2xl"><FaGithub /></a>
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">{project.title}</h3>
+                <div className="flex gap-3">
+                   <a href={project.githubLink} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white text-xl"><FaGithub /></a>
+                   <button onClick={() => handleDelete(project._id)} className="text-red-400 hover:text-red-600 text-sm">Delete</button>
+                </div>
               </div>
               
-              <p className="text-gray-600 dark:text-gray-400 mb-6 flex-grow">{project.description}</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-6 flex-grow">{project.description}</p>
               
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mt-auto">
                 {project.technologies.map(tech => (
-                  <span key={tech} className="px-3 py-1 text-xs font-bold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg uppercase tracking-wide">
+                  <span key={tech} className="px-3 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 rounded-lg">
                     {tech}
                   </span>
                 ))}
               </div>
             </motion.div>
-          ))}
+          )) : (
+            <div className="col-span-2 text-center text-gray-500 py-10">
+                <p>No projects loaded from database yet. Use the Admin Panel to add them.</p>
+                <p className="text-xs mt-2">Make sure your backend server is running at {API_URL}</p>
+            </div>
+          )}
         </div>
       </Section>
 
@@ -258,17 +219,12 @@ function App() {
       </Section>
 
       {/* --- CONTACT SECTION --- */}
-      <Section id="contact" title="Get In Touch" className="bg-gray-100/50 dark:bg-gray-800/50">
+      <Section id="contact" title="Get In Touch">
         <Contact />
       </Section>
 
       {/* --- FOOTER --- */}
-      <footer className="py-12 text-center border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="flex justify-center gap-6 mb-4">
-          {socialLinks.map((link, index) => (
-             <a key={index} href={link.url} className="text-gray-400 hover:text-blue-500 text-xl transition-colors">{link.icon}</a>
-          ))}
-        </div>
+      <footer className="py-8 text-center border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <p className="text-gray-500 text-sm">© {new Date().getFullYear()} Amal Madhu. Engineered with MERN Stack.</p>
       </footer>
     </div>
