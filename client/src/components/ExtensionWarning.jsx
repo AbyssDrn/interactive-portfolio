@@ -29,12 +29,12 @@ const ExtensionWarning = () => {
           <h3 className="font-bold text-lg">⚠️ Dark Mode Extension Detected</h3>
           <p className="text-sm mt-1 opacity-90">
             It looks like you have a dark mode extension (like Dark Reader) on. 
-            Please turn it off for this site to see the "Eyes" animation properly!
+            Please turn it off for this site to see the portfolio colors and animations properly!
           </p>
         </div>
         <button 
           onClick={() => setIsVisible(false)}
-          className="ml-4 text-white hover:text-gray-200"
+          className="ml-4 text-white hover:text-gray-200 font-bold"
         >
           ✕
         </button>
